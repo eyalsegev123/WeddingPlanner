@@ -1,0 +1,18 @@
+{
+  "meta": {
+    "title": "Wedding Planner",
+    "plannerName": "",
+    "partnerOne": "Partner One",
+    "partnerTwo": "Partner Two",
+    "sideOneLabel": "Partner One Side",
+    "sideTwoLabel": "Partner Two Side",
+    "weddingDate": "",
+    "venue": "",
+    "currency": "ILS"
+  },
+  "guests": [],
+  "tables": [],
+  "tasks": [],
+  "budget": [],
+  "vendors": []
+}
