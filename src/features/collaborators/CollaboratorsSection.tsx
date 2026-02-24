@@ -1,5 +1,18 @@
 import React, { useState } from "react";
-import CollapsibleSection from "./CollapsibleSection";
+
+import CollapsibleSection from "../../shared/components/CollapsibleSection";
+import type { CollapseSignal, WeddingMember, WorkspaceRole } from "../../types/wedding";
+
+interface Props {
+  role: WorkspaceRole;
+  userEmail: string | undefined;
+  members: WeddingMember[];
+  loading: boolean;
+  onInvite: (email: string) => Promise<void>;
+  onRemove: (memberId: string) => Promise<void>;
+  collapseSignal?: CollapseSignal;
+  statusMessage?: string;
+}
 
 export default function CollaboratorsSection({
   role,
@@ -9,17 +22,15 @@ export default function CollaboratorsSection({
   onInvite,
   onRemove,
   collapseSignal,
-  statusMessage
-}) {
+  statusMessage,
+}: Props) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const isOwner = role === "owner";
 
-  async function submitInvite(event) {
+  async function submitInvite(event: React.FormEvent) {
     event.preventDefault();
-    if (!isOwner || !inviteEmail.trim()) {
-      return;
-    }
+    if (!isOwner || !inviteEmail.trim()) return;
     setSubmitting(true);
     await onInvite(inviteEmail.trim());
     setInviteEmail("");
@@ -39,7 +50,7 @@ export default function CollaboratorsSection({
             type="email"
             placeholder="Invite email"
             value={inviteEmail}
-            onChange={(event) => setInviteEmail(event.target.value)}
+            onChange={(e) => setInviteEmail(e.target.value)}
             required
           />
           <button className="btn" type="submit" disabled={submitting}>
@@ -62,7 +73,11 @@ export default function CollaboratorsSection({
               </div>
               {isOwner && member.role !== "owner" ? (
                 <div className="row-actions">
-                  <button className="btn danger" type="button" onClick={() => onRemove(member.id)}>
+                  <button
+                    className="btn danger"
+                    type="button"
+                    onClick={() => onRemove(member.id)}
+                  >
                     Remove
                   </button>
                 </div>

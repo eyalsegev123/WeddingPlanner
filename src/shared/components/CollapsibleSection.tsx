@@ -1,13 +1,24 @@
-import React, { useState } from "react";
-import { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 
-export default function CollapsibleSection({ title, children, defaultCollapsed = false, collapseSignal }) {
+import type { CollapseSignal } from "../../types/wedding";
+
+interface Props {
+  title: string;
+  children: React.ReactNode;
+  defaultCollapsed?: boolean;
+  collapseSignal?: CollapseSignal;
+}
+
+export default function CollapsibleSection({
+  title,
+  children,
+  defaultCollapsed = false,
+  collapseSignal,
+}: Props) {
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
 
   useEffect(() => {
-    if (!collapseSignal?.mode) {
-      return;
-    }
+    if (!collapseSignal?.mode) return;
     setCollapsed(collapseSignal.mode === "collapse");
   }, [collapseSignal]);
 
@@ -25,7 +36,6 @@ export default function CollapsibleSection({ title, children, defaultCollapsed =
           <span>▾</span>
         </button>
       </div>
-
       {!collapsed && <div className="section-body">{children}</div>}
     </section>
   );

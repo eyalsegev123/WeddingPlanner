@@ -1,10 +1,19 @@
 import React, { useEffect, useState } from "react";
 
-export default function Header({ meta, onMetaChange, stats }) {
+import type { WeddingMeta, WeddingStats } from "../../types/wedding";
+
+interface Props {
+  meta: WeddingMeta;
+  onMetaChange: (key: keyof WeddingMeta, value: string) => void;
+  stats: WeddingStats;
+}
+
+export default function Header({ meta, onMetaChange, stats }: Props) {
   const [settingsOpen, setSettingsOpen] = useState(false);
+
   const money = new Intl.NumberFormat(undefined, {
     style: "currency",
-    currency: "ILS"
+    currency: stats.currency || "ILS",
   });
 
   const daysLabel =
@@ -17,14 +26,10 @@ export default function Header({ meta, onMetaChange, stats }) {
       : "Set wedding date";
 
   useEffect(() => {
-    if (!settingsOpen) {
-      return undefined;
-    }
+    if (!settingsOpen) return;
 
-    function onKeyDown(event) {
-      if (event.key === "Escape") {
-        setSettingsOpen(false);
-      }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") setSettingsOpen(false);
     }
 
     window.addEventListener("keydown", onKeyDown);
@@ -37,7 +42,9 @@ export default function Header({ meta, onMetaChange, stats }) {
         <div>
           <p className="kicker">Wedding Operations Dashboard</p>
           <h1>{meta.title}</h1>
-          <p className="muted">Planning for {meta.partnerOne} & {meta.partnerTwo}</p>
+          <p className="muted">
+            Planning for {meta.partnerOne} &amp; {meta.partnerTwo}
+          </p>
           <p className="muted">{daysLabel}</p>
         </div>
         <button className="btn" type="button" onClick={() => setSettingsOpen(true)}>
@@ -82,7 +89,13 @@ export default function Header({ meta, onMetaChange, stats }) {
 
       {settingsOpen && (
         <div className="modal-backdrop" onClick={() => setSettingsOpen(false)}>
-          <div className="modal-card settings-modal" role="dialog" aria-modal="true" aria-label="Wedding settings" onClick={(event) => event.stopPropagation()}>
+          <div
+            className="modal-card settings-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Wedding settings"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="section-header">
               <h2>Wedding Settings</h2>
               <button className="btn danger" type="button" onClick={() => setSettingsOpen(false)}>
@@ -93,35 +106,60 @@ export default function Header({ meta, onMetaChange, stats }) {
             <div className="meta-grid settings-grid">
               <label>
                 Project Name
-                <input value={meta.title} onChange={(event) => onMetaChange("title", event.target.value)} />
+                <input
+                  value={meta.title}
+                  onChange={(e) => onMetaChange("title", e.target.value)}
+                />
               </label>
               <label>
                 Planner Name
-                <input value={meta.plannerName} onChange={(event) => onMetaChange("plannerName", event.target.value)} />
+                <input
+                  value={meta.plannerName}
+                  onChange={(e) => onMetaChange("plannerName", e.target.value)}
+                />
               </label>
               <label>
                 Partner 1
-                <input value={meta.partnerOne} onChange={(event) => onMetaChange("partnerOne", event.target.value)} />
+                <input
+                  value={meta.partnerOne}
+                  onChange={(e) => onMetaChange("partnerOne", e.target.value)}
+                />
               </label>
               <label>
                 Partner 2
-                <input value={meta.partnerTwo} onChange={(event) => onMetaChange("partnerTwo", event.target.value)} />
+                <input
+                  value={meta.partnerTwo}
+                  onChange={(e) => onMetaChange("partnerTwo", e.target.value)}
+                />
               </label>
               <label>
                 Side Label 1
-                <input value={meta.sideOneLabel} onChange={(event) => onMetaChange("sideOneLabel", event.target.value)} />
+                <input
+                  value={meta.sideOneLabel}
+                  onChange={(e) => onMetaChange("sideOneLabel", e.target.value)}
+                />
               </label>
               <label>
                 Side Label 2
-                <input value={meta.sideTwoLabel} onChange={(event) => onMetaChange("sideTwoLabel", event.target.value)} />
+                <input
+                  value={meta.sideTwoLabel}
+                  onChange={(e) => onMetaChange("sideTwoLabel", e.target.value)}
+                />
               </label>
               <label>
                 Wedding Date
-                <input type="date" value={meta.weddingDate} onChange={(event) => onMetaChange("weddingDate", event.target.value)} />
+                <input
+                  type="date"
+                  value={meta.weddingDate}
+                  onChange={(e) => onMetaChange("weddingDate", e.target.value)}
+                />
               </label>
               <label>
                 Venue
-                <input value={meta.venue} onChange={(event) => onMetaChange("venue", event.target.value)} />
+                <input
+                  value={meta.venue}
+                  onChange={(e) => onMetaChange("venue", e.target.value)}
+                />
               </label>
             </div>
           </div>
