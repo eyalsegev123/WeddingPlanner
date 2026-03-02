@@ -36,7 +36,7 @@ export default function App() {
     onServerState: weddingData.applyServerState,
     setStatusMessage,
   });
-  const { syncState } = useSync(workspace.workspaceId, weddingData.data, weddingData.hasPendingSave, {
+  const { syncState } = useSync(workspace.workspaceId, weddingData.data, weddingData.hasPendingSave, weddingData.dirtyDomains, {
     onServerState: weddingData.applyServerState,
     onSaveClear: weddingData.clearPendingSave,
     setStatusMessage,

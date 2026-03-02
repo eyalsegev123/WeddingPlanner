@@ -91,6 +91,9 @@ export interface WeddingData {
   vendors: Vendor[];
 }
 
+export type WeddingDomain = keyof WeddingData;
+// Resolves to: 'meta' | 'guests' | 'tables' | 'tasks' | 'budget' | 'vendors'
+
 export interface WeddingMember {
   id: string;
   user_id: string | null;

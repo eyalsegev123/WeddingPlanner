@@ -2,7 +2,7 @@ import type { Dispatch, SetStateAction } from "react";
 import { useEffect, useRef, useState } from "react";
 
 import { subscribeWorkspace, updateWorkspace } from "../services/weddingApi";
-import type { ServerStatePayload, SyncState, WeddingData } from "../types/wedding";
+import type { ServerStatePayload, SyncState, WeddingData, WeddingDomain } from "../types/wedding";
 import { normalizeData } from "../utils/storage";
 
 interface UseSyncOptions {
@@ -22,6 +22,7 @@ export function useSync(
   workspaceId: string,
   data: WeddingData,
   hasPendingSave: boolean,
+  dirtyDomains: ReadonlySet<WeddingDomain>,
   options: UseSyncOptions,
 ): SyncHook {
   const { onServerState, onSaveClear, setStatusMessage } = options;
@@ -107,7 +108,7 @@ export function useSync(
 
     saveTimerRef.current = window.setTimeout(async () => {
       try {
-        const result = await updateWorkspace(workspaceId, data);
+        const result = await updateWorkspace(workspaceId, data, dirtyDomains);
         lastServerDataRef.current = result.data;
         lastUpdatedAtRef.current = result.updatedAt ?? "";
         onSaveClear();

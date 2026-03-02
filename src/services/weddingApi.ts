@@ -2,7 +2,7 @@ import type { User } from "@supabase/supabase-js";
 
 import defaultData from "../data/defaultWeddingData.json";
 import { supabase } from "../lib/supabaseClient";
-import type { ServerStatePayload, WeddingData, WeddingMember, WorkspaceResult, WorkspaceRole } from "../types/wedding";
+import type { ServerStatePayload, WeddingData, WeddingDomain, WeddingMember, WorkspaceResult, WorkspaceRole } from "../types/wedding";
 import { normalizeData } from "../utils/storage";
 
 function requireClient() {
@@ -151,20 +151,25 @@ export async function refreshWedding(weddingId: string): Promise<ServerStatePayl
 export async function updateWorkspace(
   weddingId: string,
   nextData: WeddingData,
+  dirtyDomains?: ReadonlySet<WeddingDomain>,
 ): Promise<ServerStatePayload> {
   const client = requireClient();
   const clean = normalizeData(nextData);
 
+  const allDomains: WeddingDomain[] = ["meta", "guests", "tables", "tasks", "budget", "vendors"];
+  const domainsToWrite =
+    dirtyDomains && dirtyDomains.size > 0
+      ? allDomains.filter((d) => dirtyDomains.has(d))
+      : allDomains;
+
+  const updatePayload: Partial<Record<WeddingDomain, unknown>> = {};
+  for (const domain of domainsToWrite) {
+    updatePayload[domain] = clean[domain];
+  }
+
   const { data, error } = await client
     .from("weddings")
-    .update({
-      meta: clean.meta,
-      tasks: clean.tasks,
-      vendors: clean.vendors,
-      guests: clean.guests,
-      tables: clean.tables,
-      budget: clean.budget,
-    })
+    .update(updatePayload)
     .eq("id", weddingId)
     .select("updated_at,meta,tasks,vendors,guests,tables,budget")
     .single();

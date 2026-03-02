@@ -6,6 +6,7 @@ import type {
   Task,
   Vendor,
   WeddingData,
+  WeddingDomain,
   WeddingMeta,
   WeddingStats,
   WeddingTable,
@@ -15,6 +16,7 @@ import { createId, getDefaultData, normalizeData } from "../utils/storage";
 export interface WeddingDataHook {
   data: WeddingData;
   hasPendingSave: boolean;
+  dirtyDomains: ReadonlySet<WeddingDomain>;
   stats: WeddingStats;
   applyServerState: (nextData: WeddingData) => void;
   clearPendingSave: () => void;
@@ -38,22 +40,33 @@ export interface WeddingDataHook {
   resetAllData: (confirmed: boolean) => void;
 }
 
+const ALL_DOMAINS: WeddingDomain[] = ["meta", "guests", "tables", "tasks", "budget", "vendors"];
+
 export function useWeddingData(): WeddingDataHook {
   const [data, setData] = useState<WeddingData>(() => getDefaultData());
-  const [hasPendingSave, setHasPendingSave] = useState(false);
+  const [dirtyDomains, setDirtyDomains] = useState<Set<WeddingDomain>>(new Set());
 
-  function mutateData(updater: (prev: WeddingData) => WeddingData): void {
+  const hasPendingSave = dirtyDomains.size > 0;
+
+  function mutateData(
+    updater: (prev: WeddingData) => WeddingData,
+    domains: WeddingDomain[],
+  ): void {
     setData((prev) => normalizeData(updater(prev)));
-    setHasPendingSave(true);
+    setDirtyDomains((prev) => {
+      const next = new Set(prev);
+      for (const d of domains) next.add(d);
+      return next;
+    });
   }
 
   function applyServerState(nextData: WeddingData): void {
     setData(normalizeData(nextData));
-    setHasPendingSave(false);
+    setDirtyDomains(new Set());
   }
 
   function clearPendingSave(): void {
-    setHasPendingSave(false);
+    setDirtyDomains(new Set());
   }
 
   const stats = useMemo<WeddingStats>(() => {
@@ -103,123 +116,159 @@ export function useWeddingData(): WeddingDataHook {
   }, [data]);
 
   function patchMeta(key: keyof WeddingMeta, value: string): void {
-    mutateData((prev) => ({ ...prev, meta: { ...prev.meta, [key]: value } }));
+    mutateData((prev) => ({ ...prev, meta: { ...prev.meta, [key]: value } }), ["meta"]);
   }
 
   function addGuest(guest: Omit<Guest, "id">): void {
-    mutateData((prev) => ({
-      ...prev,
-      guests: [
-        ...prev.guests,
-        {
-          ...guest,
-          name: String(guest.name ?? "").trim() || "Unnamed guest",
-          id: createId("guest"),
-        },
-      ],
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        guests: [
+          ...prev.guests,
+          {
+            ...guest,
+            name: String(guest.name ?? "").trim() || "Unnamed guest",
+            id: createId("guest"),
+          },
+        ],
+      }),
+      ["guests"],
+    );
   }
 
   function patchGuest(guestId: string, patch: Partial<Guest>): void {
-    mutateData((prev) => ({
-      ...prev,
-      guests: prev.guests.map((g) => (g.id === guestId ? { ...g, ...patch } : g)),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        guests: prev.guests.map((g) => (g.id === guestId ? { ...g, ...patch } : g)),
+      }),
+      ["guests"],
+    );
   }
 
   function deleteGuest(guestId: string): void {
-    mutateData((prev) => ({
-      ...prev,
-      guests: prev.guests.filter((g) => g.id !== guestId),
-      tables: prev.tables.map((t) => ({
-        ...t,
-        guestIds: t.guestIds.filter((id) => id !== guestId),
-      })),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        guests: prev.guests.filter((g) => g.id !== guestId),
+        tables: prev.tables.map((t) => ({
+          ...t,
+          guestIds: t.guestIds.filter((id) => id !== guestId),
+        })),
+      }),
+      ["guests", "tables"],
+    );
   }
 
   function addTask(task: Omit<Task, "id">): void {
-    mutateData((prev) => ({
-      ...prev,
-      tasks: [
-        ...prev.tasks,
-        {
-          ...task,
-          title: String(task.title ?? "").trim() || "Untitled task",
-          id: createId("task"),
-        },
-      ],
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        tasks: [
+          ...prev.tasks,
+          {
+            ...task,
+            title: String(task.title ?? "").trim() || "Untitled task",
+            id: createId("task"),
+          },
+        ],
+      }),
+      ["tasks"],
+    );
   }
 
   function patchTask(taskId: string, patch: Partial<Task>): void {
-    mutateData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        tasks: prev.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)),
+      }),
+      ["tasks"],
+    );
   }
 
   function deleteTask(taskId: string): void {
-    mutateData((prev) => ({
-      ...prev,
-      tasks: prev.tasks.filter((t) => t.id !== taskId),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        tasks: prev.tasks.filter((t) => t.id !== taskId),
+      }),
+      ["tasks"],
+    );
   }
 
   function addBudgetItem(item: Omit<BudgetItem, "id">): void {
-    mutateData((prev) => ({
-      ...prev,
-      budget: [
-        ...prev.budget,
-        {
-          ...item,
-          title: String(item.title ?? "").trim() || "Untitled item",
-          id: createId("budget"),
-        },
-      ],
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        budget: [
+          ...prev.budget,
+          {
+            ...item,
+            title: String(item.title ?? "").trim() || "Untitled item",
+            id: createId("budget"),
+          },
+        ],
+      }),
+      ["budget"],
+    );
   }
 
   function patchBudgetItem(itemId: string, patch: Partial<BudgetItem>): void {
-    mutateData((prev) => ({
-      ...prev,
-      budget: prev.budget.map((item) => (item.id === itemId ? { ...item, ...patch } : item)),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        budget: prev.budget.map((item) => (item.id === itemId ? { ...item, ...patch } : item)),
+      }),
+      ["budget"],
+    );
   }
 
   function deleteBudgetItem(itemId: string): void {
-    mutateData((prev) => ({
-      ...prev,
-      budget: prev.budget.filter((item) => item.id !== itemId),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        budget: prev.budget.filter((item) => item.id !== itemId),
+      }),
+      ["budget"],
+    );
   }
 
   function addVendor(vendor: Omit<Vendor, "id">): void {
-    mutateData((prev) => ({
-      ...prev,
-      vendors: [
-        ...prev.vendors,
-        {
-          ...vendor,
-          name: String(vendor.name ?? "").trim() || "Unnamed vendor",
-          id: createId("vendor"),
-        },
-      ],
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        vendors: [
+          ...prev.vendors,
+          {
+            ...vendor,
+            name: String(vendor.name ?? "").trim() || "Unnamed vendor",
+            id: createId("vendor"),
+          },
+        ],
+      }),
+      ["vendors"],
+    );
   }
 
   function patchVendor(vendorId: string, patch: Partial<Vendor>): void {
-    mutateData((prev) => ({
-      ...prev,
-      vendors: prev.vendors.map((v) => (v.id === vendorId ? { ...v, ...patch } : v)),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        vendors: prev.vendors.map((v) => (v.id === vendorId ? { ...v, ...patch } : v)),
+      }),
+      ["vendors"],
+    );
   }
 
   function deleteVendor(vendorId: string): void {
-    mutateData((prev) => ({
-      ...prev,
-      vendors: prev.vendors.filter((v) => v.id !== vendorId),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        vendors: prev.vendors.filter((v) => v.id !== vendorId),
+      }),
+      ["vendors"],
+    );
   }
 
   function addTable(table: Omit<WeddingTable, "id">): void {
@@ -237,7 +286,7 @@ export function useWeddingData(): WeddingDataHook {
         y: Number.isFinite(table.y) ? table.y : 25 + Math.floor(count / 4) * 22,
       };
       return { ...prev, tables: [...prev.tables, newTable] };
-    });
+    }, ["tables"]);
   }
 
   function patchTable(tableId: string, patch: Partial<WeddingTable>): void {
@@ -292,20 +341,23 @@ export function useWeddingData(): WeddingDataHook {
           };
         }),
       };
-    });
+    }, ["tables"]);
   }
 
   function deleteTable(tableId: string): void {
-    mutateData((prev) => ({
-      ...prev,
-      tables: prev.tables.filter((t) => t.id !== tableId),
-    }));
+    mutateData(
+      (prev) => ({
+        ...prev,
+        tables: prev.tables.filter((t) => t.id !== tableId),
+      }),
+      ["tables"],
+    );
   }
 
   function applyJson(text: string): { error: string | null } {
     try {
       const parsed: unknown = JSON.parse(text);
-      mutateData(() => normalizeData(parsed));
+      mutateData(() => normalizeData(parsed), ALL_DOMAINS);
       return { error: null };
     } catch {
       return { error: "Invalid JSON. Please fix syntax and try again." };
@@ -314,12 +366,13 @@ export function useWeddingData(): WeddingDataHook {
 
   function resetAllData(confirmed: boolean): void {
     if (!confirmed) return;
-    mutateData(() => getDefaultData());
+    mutateData(() => getDefaultData(), ALL_DOMAINS);
   }
 
   return {
     data,
     hasPendingSave,
+    dirtyDomains,
     stats,
     applyServerState,
     clearPendingSave,
