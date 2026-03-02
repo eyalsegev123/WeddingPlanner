@@ -14,6 +14,7 @@ import type { WeddingData, WeddingMember, WorkspaceRole } from "../types/wedding
 interface UseWorkspaceOptions {
   onServerState: (data: WeddingData, updatedAt: string) => void;
   setStatusMessage: Dispatch<SetStateAction<string>>;
+  getWeddingTitle?: () => string;
 }
 
 export interface WorkspaceHook {
@@ -33,7 +34,7 @@ export function useWorkspace(
   user: User | null,
   options: UseWorkspaceOptions,
 ): WorkspaceHook {
-  const { onServerState, setStatusMessage } = options;
+  const { onServerState, setStatusMessage, getWeddingTitle } = options;
 
   const [workspaceId, setWorkspaceId] = useState("");
   const [workspaceRole, setWorkspaceRole] = useState<WorkspaceRole>("editor");
@@ -105,7 +106,13 @@ export function useWorkspace(
   async function handleInvite(email: string): Promise<void> {
     if (!workspaceId || !user) return;
     try {
-      await inviteMember({ weddingId: workspaceId, email, invitedByUserId: user.id });
+      await inviteMember({
+        weddingId: workspaceId,
+        email,
+        invitedByUserId: user.id,
+        weddingTitle: getWeddingTitle?.(),
+        appUrl: window.location.origin,
+      });
       await loadMembers(workspaceId);
       setStatusMessage("Invite created.");
     } catch (error) {

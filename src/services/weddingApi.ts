@@ -228,10 +228,14 @@ export async function inviteMember({
   weddingId,
   email,
   invitedByUserId,
+  weddingTitle,
+  appUrl,
 }: {
   weddingId: string;
   email: string;
   invitedByUserId: string;
+  weddingTitle?: string;
+  appUrl?: string;
 }): Promise<void> {
   const client = requireClient();
   const normalizedEmail = normalizeEmail(email);
@@ -246,6 +250,19 @@ export async function inviteMember({
   });
 
   if (error) throw error;
+
+  // Send invite email — non-fatal
+  try {
+    await client.functions.invoke("send-invite-email", {
+      body: {
+        email: normalizedEmail,
+        weddingTitle: weddingTitle ?? "your wedding",
+        appUrl: appUrl ?? "",
+      },
+    });
+  } catch (emailErr) {
+    console.warn("Failed to send invite email:", emailErr);
+  }
 }
 
 export async function removeMember(memberId: string): Promise<void> {

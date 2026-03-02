@@ -275,6 +275,19 @@ supabase/
 
 ---
 
+## Edge Functions (Email Invitations)
+
+To enable invite emails, deploy the `send-invite-email` Edge Function and set your Resend API key:
+
+1. Install the Supabase CLI if not already: `npm install -g supabase`
+2. Link your project: `supabase link --project-ref your-project-ref`
+3. Set the secret: `supabase secrets set RESEND_API_KEY=re_your_key`
+4. Deploy the function: `supabase functions deploy send-invite-email`
+
+Get a free Resend API key at [resend.com](https://resend.com). Invite emails are non-fatal — if the key is not set or the send fails, the invite row is still created and the invitee can sign in normally.
+
+---
+
 ## Environment Variables
 
 Create `.env.local` in the project root:
@@ -308,7 +321,7 @@ npm run preview    # Preview the production build locally
 
 - The first authenticated user to open the app becomes the **owner** and gets a workspace auto-bootstrapped.
 - The owner invites collaborators by email from the Collaborators section.
-- Invites are stored as `pending` in `wedding_members` — **no email is sent automatically**.
+- Invites are stored as `pending` in `wedding_members`. If the `send-invite-email` Edge Function is deployed and `RESEND_API_KEY` is set, an invitation email is sent automatically; otherwise the invite is silently created without email.
 - When an invited user signs in with the exact invited email, their status flips to `active` and they gain editor access.
 - Both owners and editors can read and write all wedding data.
 - Only the owner can invite or remove members.

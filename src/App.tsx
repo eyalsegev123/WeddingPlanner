@@ -35,6 +35,7 @@ export default function App() {
   const workspace = useWorkspace(user, {
     onServerState: weddingData.applyServerState,
     setStatusMessage,
+    getWeddingTitle: () => weddingData.data.meta.title,
   });
   const { syncState } = useSync(workspace.workspaceId, weddingData.data, weddingData.hasPendingSave, weddingData.dirtyDomains, {
     onServerState: weddingData.applyServerState,
