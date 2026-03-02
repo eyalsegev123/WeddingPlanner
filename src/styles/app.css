@@ -478,6 +478,43 @@ textarea {
   transform: translate(-50%, -50%);
 }
 
+.tables-layout {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.guest-sidebar {
+  width: 160px;
+  flex-shrink: 0;
+  max-height: 400px;
+  overflow-y: auto;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+.guest-sidebar h4 {
+  margin: 0 0 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted, #6b7280);
+}
+
+.guest-chip[draggable="true"] {
+  cursor: grab;
+}
+
+.guest-chip[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.scene-table.drag-over {
+  box-shadow: 0 0 0 3px var(--accent, #6366f1);
+}
+
 .table-editor {
   border: 1px solid var(--line);
   border-radius: 14px;
