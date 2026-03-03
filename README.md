@@ -286,6 +286,8 @@ To enable invite emails, deploy the `send-invite-email` Edge Function and set yo
 
 Get a free Resend API key at [resend.com](https://resend.com). Invite emails are non-fatal — if the key is not set or the send fails, the invite row is still created and the invitee can sign in normally.
 
+> **Sandbox sender note:** The function uses `onboarding@resend.dev` as the sender, which is Resend's shared sandbox domain. This works immediately without domain verification, but emails may land in spam. For production, [verify your own domain](https://resend.com/docs/dashboard/domains/introduction) and update the `from` field in `supabase/functions/send-invite-email/index.ts`.
+
 ---
 
 ## Environment Variables

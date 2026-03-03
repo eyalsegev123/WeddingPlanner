@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { Guest, WeddingTable } from "../../types/wedding";
 
 interface Props {
@@ -6,8 +7,13 @@ interface Props {
 }
 
 export default function GuestSidebar({ guests, tables }: Props) {
-  const unassigned = guests.filter(
-    (g) => !tables.some((t) => t.guestIds.includes(g.id)),
+  const seatedIds = useMemo(
+    () => new Set(tables.flatMap((t) => t.guestIds)),
+    [tables],
+  );
+  const unassigned = useMemo(
+    () => guests.filter((g) => !seatedIds.has(g.id)),
+    [guests, seatedIds],
   );
 
   return (

@@ -2,6 +2,7 @@ import type { User } from "@supabase/supabase-js";
 
 import defaultData from "../data/defaultWeddingData.json";
 import { supabase } from "../lib/supabaseClient";
+import { ALL_WEDDING_DOMAINS } from "../types/wedding";
 import type { ServerStatePayload, WeddingData, WeddingDomain, WeddingMember, WorkspaceResult, WorkspaceRole } from "../types/wedding";
 import { normalizeData } from "../utils/storage";
 
@@ -156,11 +157,10 @@ export async function updateWorkspace(
   const client = requireClient();
   const clean = normalizeData(nextData);
 
-  const allDomains: WeddingDomain[] = ["meta", "guests", "tables", "tasks", "budget", "vendors"];
   const domainsToWrite =
     dirtyDomains && dirtyDomains.size > 0
-      ? allDomains.filter((d) => dirtyDomains.has(d))
-      : allDomains;
+      ? ALL_WEDDING_DOMAINS.filter((d) => dirtyDomains.has(d))
+      : ALL_WEDDING_DOMAINS;
 
   const updatePayload: Partial<Record<WeddingDomain, unknown>> = {};
   for (const domain of domainsToWrite) {

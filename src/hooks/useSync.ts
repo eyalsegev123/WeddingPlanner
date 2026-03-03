@@ -122,6 +122,8 @@ export function useSync(
         }
       }
     }, SAVE_DEBOUNCE_MS);
+  // dirtyDomains intentionally omitted: every mutation that changes dirtyDomains
+  // also changes `data`, so the save always captures the latest dirty set.
   }, [workspaceId, hasPendingSave, data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Apply queued remote update once local save clears

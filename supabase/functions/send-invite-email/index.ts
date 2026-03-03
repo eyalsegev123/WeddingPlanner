@@ -1,17 +1,26 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
 
   try {
-    const { email, weddingTitle, appUrl } = await req.json();
+    const body = await req.json();
+    const email = typeof body?.email === "string" ? body.email.trim() : "";
+    const weddingTitle = typeof body?.weddingTitle === "string" ? body.weddingTitle.trim() : "your wedding";
+    const appUrl = typeof body?.appUrl === "string" ? body.appUrl.trim() : "";
+
+    if (!email || !email.includes("@")) {
+      return new Response(JSON.stringify({ ok: false, error: "Invalid or missing email" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const apiKey = Deno.env.get("RESEND_API_KEY");
     if (!apiKey) {
       return new Response(JSON.stringify({ ok: false, error: "RESEND_API_KEY not set" }), {
@@ -38,8 +47,8 @@ serve(async (req) => {
     });
 
     if (!res.ok) {
-      const body = await res.text();
-      return new Response(JSON.stringify({ ok: false, error: body }), {
+      const responseBody = await res.text();
+      return new Response(JSON.stringify({ ok: false, error: responseBody }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }

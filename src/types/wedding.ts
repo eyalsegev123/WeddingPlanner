@@ -94,6 +94,8 @@ export interface WeddingData {
 export type WeddingDomain = keyof WeddingData;
 // Resolves to: 'meta' | 'guests' | 'tables' | 'tasks' | 'budget' | 'vendors'
 
+export const ALL_WEDDING_DOMAINS: WeddingDomain[] = ["meta", "guests", "tables", "tasks", "budget", "vendors"];
+
 export interface WeddingMember {
   id: string;
   user_id: string | null;

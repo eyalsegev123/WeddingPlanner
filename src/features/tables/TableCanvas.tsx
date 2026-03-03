@@ -109,7 +109,9 @@ export default function TableCanvas({
                 e.currentTarget.classList.add("drag-over");
               }}
               onDragLeave={(e) => {
-                e.currentTarget.classList.remove("drag-over");
+                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                  e.currentTarget.classList.remove("drag-over");
+                }
               }}
               onDrop={(e) => {
                 e.preventDefault();

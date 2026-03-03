@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 
+import { ALL_WEDDING_DOMAINS } from "../types/wedding";
 import type {
   BudgetItem,
   Guest,
@@ -40,7 +41,6 @@ export interface WeddingDataHook {
   resetAllData: (confirmed: boolean) => void;
 }
 
-const ALL_DOMAINS: WeddingDomain[] = ["meta", "guests", "tables", "tasks", "budget", "vendors"];
 
 export function useWeddingData(): WeddingDataHook {
   const [data, setData] = useState<WeddingData>(() => getDefaultData());
@@ -357,7 +357,7 @@ export function useWeddingData(): WeddingDataHook {
   function applyJson(text: string): { error: string | null } {
     try {
       const parsed: unknown = JSON.parse(text);
-      mutateData(() => normalizeData(parsed), ALL_DOMAINS);
+      mutateData(() => normalizeData(parsed), ALL_WEDDING_DOMAINS);
       return { error: null };
     } catch {
       return { error: "Invalid JSON. Please fix syntax and try again." };
@@ -366,7 +366,7 @@ export function useWeddingData(): WeddingDataHook {
 
   function resetAllData(confirmed: boolean): void {
     if (!confirmed) return;
-    mutateData(() => getDefaultData(), ALL_DOMAINS);
+    mutateData(() => getDefaultData(), ALL_WEDDING_DOMAINS);
   }
 
   return {
