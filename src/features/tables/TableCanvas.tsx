@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import type { Guest, WeddingTable } from "../../types/wedding";
 
 interface DragState {
@@ -17,12 +17,18 @@ interface Props {
 
 export default function TableCanvas({
   tables,
+  guests,
   selectedTableId,
   onSelectTable,
   onPatchTable,
 }: Props) {
   const gridRef = useRef<HTMLDivElement | null>(null);
   const dragRef = useRef<DragState | null>(null);
+
+  const guestsById = useMemo(
+    () => new Map(guests.map((g) => [g.id, g])),
+    [guests]
+  );
 
   function startDrag(event: React.PointerEvent, table: WeddingTable) {
     if (!gridRef.current) return;
@@ -117,6 +123,14 @@ export default function TableCanvas({
               <span className="scene-meta">
                 {table.guestIds.length}/{table.capacity}
               </span>
+              {table.guestIds.length > 0 && (
+                <span className="scene-guests">
+                  {table.guestIds
+                    .map((id) => guestsById.get(id)?.name)
+                    .filter(Boolean)
+                    .join(", ")}
+                </span>
+              )}
               {Array.from({ length: seats }).map((_, i) => {
                 const angle = ((Math.PI * 2) / seats) * i - Math.PI / 2;
                 const rx = isRect ? 58 : 46;

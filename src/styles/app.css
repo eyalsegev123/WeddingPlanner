@@ -468,6 +468,23 @@ textarea {
   letter-spacing: 0.03em;
 }
 
+.scene-guests {
+  position: absolute;
+  bottom: 18%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 70%;
+  font-size: 0.55rem;
+  line-height: 1.2;
+  text-align: center;
+  color: inherit;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  pointer-events: none;
+}
+
 .scene-chair {
   position: absolute;
   width: 11px;
