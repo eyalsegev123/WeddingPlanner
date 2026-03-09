@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 
 import CollapsibleSection from "../../shared/components/CollapsibleSection";
+import DataTable, { ColumnDef, SortDir } from "../../shared/components/DataTable";
 import { RSVP_STATUSES } from "../../constants/enums";
 import type { CollapseSignal, Guest, RsvpStatus, WeddingMeta } from "../../types/wedding";
 
@@ -12,6 +13,12 @@ interface Props {
   onDeleteGuest: (id: string) => void;
   collapseSignal?: CollapseSignal;
 }
+
+const RSVP_BG: Record<RsvpStatus, string> = {
+  Pending: "#f5f0ff",
+  Yes: "#e5f7f0",
+  No: "#fde8e8",
+};
 
 const initialGuest: Omit<Guest, "id"> = {
   name: "",
@@ -31,21 +38,26 @@ export default function GuestsSection({
   collapseSignal,
 }: Props) {
   const [form, setForm] = useState(initialGuest);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
 
   const sideOneLabel = meta.sideOneLabel || meta.partnerOne || "Partner 1 Side";
   const sideTwoLabel = meta.sideTwoLabel || meta.partnerTwo || "Partner 2 Side";
-  const sideOneKeys = [sideOneLabel, meta.partnerOne].filter(Boolean).map((v) => v.toLowerCase());
-  const sideTwoKeys = [sideTwoLabel, meta.partnerTwo].filter(Boolean).map((v) => v.toLowerCase());
 
-  const grouped = useMemo(() => {
-    const sideOne = guests.filter((g) => sideOneKeys.includes(g.side.toLowerCase()));
-    const sideTwo = guests.filter((g) => sideTwoKeys.includes(g.side.toLowerCase()));
-    const other = guests.filter((g) => {
-      const side = g.side.toLowerCase();
-      return !sideOneKeys.includes(side) && !sideTwoKeys.includes(side);
+  function handleSort(key: string) {
+    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+
+  const sortedGuests = useMemo(() => {
+    if (!sortKey) return guests;
+    return [...guests].sort((a, b) => {
+      const av = String((a as unknown as Record<string, unknown>)[sortKey] ?? "");
+      const bv = String((b as unknown as Record<string, unknown>)[sortKey] ?? "");
+      const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: "base" });
+      return sortDir === "asc" ? cmp : -cmp;
     });
-    return { sideOne, sideTwo, other };
-  }, [guests, sideOneKeys, sideTwoKeys]);
+  }, [guests, sortKey, sortDir]);
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -53,33 +65,103 @@ export default function GuestsSection({
     setForm(initialGuest);
   }
 
-  function renderGuestRows(items: Guest[]) {
-    return items.map((guest) => (
-      <div key={guest.id} className="row">
-        <div>
-          <strong>{guest.name}</strong>
-          <p className="muted">{guest.side || "Unassigned side"}</p>
-          <p className="muted">
-            {guest.phone || "No phone"} • {guest.email || "No email"}
-          </p>
-          <p className="muted">{guest.notes || "No notes"}</p>
-        </div>
-        <div className="row-actions">
-          <select
-            value={guest.rsvp}
-            onChange={(e) => onPatchGuest(guest.id, { rsvp: e.target.value as RsvpStatus })}
-          >
-            {RSVP_STATUSES.map((s) => (
-              <option key={s}>{s}</option>
-            ))}
-          </select>
-          <button className="btn danger" type="button" onClick={() => onDeleteGuest(guest.id)}>
-            Delete
-          </button>
-        </div>
-      </div>
-    ));
-  }
+  const columns: ColumnDef<Guest>[] = [
+    {
+      key: "name",
+      label: "Guest Name",
+      sortable: true,
+      width: "180px",
+      render: (g) => (
+        <input
+          className="cell-input"
+          value={g.name}
+          onChange={(e) => onPatchGuest(g.id, { name: e.target.value })}
+        />
+      ),
+    },
+    {
+      key: "side",
+      label: "Side",
+      sortable: true,
+      width: "130px",
+      render: (g) => (
+        <select
+          className="cell-select"
+          value={g.side}
+          onChange={(e) => onPatchGuest(g.id, { side: e.target.value })}
+        >
+          <option value="">—</option>
+          <option value={sideOneLabel}>{sideOneLabel}</option>
+          <option value={sideTwoLabel}>{sideTwoLabel}</option>
+        </select>
+      ),
+    },
+    {
+      key: "rsvp",
+      label: "RSVP",
+      sortable: true,
+      width: "110px",
+      render: (g) => (
+        <select
+          className="cell-select"
+          value={g.rsvp}
+          style={{ background: RSVP_BG[g.rsvp], borderRadius: "999px", paddingLeft: "0.6rem" }}
+          onChange={(e) => onPatchGuest(g.id, { rsvp: e.target.value as RsvpStatus })}
+        >
+          {RSVP_STATUSES.map((s) => <option key={s}>{s}</option>)}
+        </select>
+      ),
+    },
+    {
+      key: "phone",
+      label: "Phone",
+      width: "140px",
+      render: (g) => (
+        <input
+          className="cell-input"
+          placeholder="Phone"
+          value={g.phone}
+          onChange={(e) => onPatchGuest(g.id, { phone: e.target.value })}
+        />
+      ),
+    },
+    {
+      key: "email",
+      label: "Email",
+      width: "190px",
+      render: (g) => (
+        <input
+          type="email"
+          className="cell-input"
+          placeholder="Email"
+          value={g.email}
+          onChange={(e) => onPatchGuest(g.id, { email: e.target.value })}
+        />
+      ),
+    },
+    {
+      key: "notes",
+      label: "Notes",
+      render: (g) => (
+        <input
+          className="cell-input"
+          placeholder="Notes"
+          value={g.notes}
+          onChange={(e) => onPatchGuest(g.id, { notes: e.target.value })}
+        />
+      ),
+    },
+    {
+      key: "_actions",
+      label: "",
+      width: "90px",
+      render: (g) => (
+        <button className="btn danger" type="button" onClick={() => onDeleteGuest(g.id)}>
+          Delete
+        </button>
+      ),
+    },
+  ];
 
   return (
     <CollapsibleSection title="Guests" collapseSignal={collapseSignal}>
@@ -111,34 +193,25 @@ export default function GuestsSection({
           value={form.rsvp}
           onChange={(e) => setForm((prev) => ({ ...prev, rsvp: e.target.value as RsvpStatus }))}
         >
-          {RSVP_STATUSES.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
+          {RSVP_STATUSES.map((s) => <option key={s}>{s}</option>)}
         </select>
         <input
           placeholder="Notes"
           value={form.notes}
           onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))}
         />
-        <button className="btn" type="submit">
-          Add Guest
-        </button>
+        <button className="btn" type="submit">Add Guest</button>
       </form>
 
-      <div className="columns-3">
-        <div>
-          <h3>{sideOneLabel}</h3>
-          {renderGuestRows(grouped.sideOne)}
-        </div>
-        <div>
-          <h3>{sideTwoLabel}</h3>
-          {renderGuestRows(grouped.sideTwo)}
-        </div>
-        <div>
-          <h3>Other / Unassigned</h3>
-          {renderGuestRows(grouped.other)}
-        </div>
-      </div>
+      <DataTable
+        columns={columns}
+        rows={sortedGuests}
+        sortKey={sortKey}
+        sortDir={sortDir}
+        onSort={handleSort}
+        getRowKey={(g) => g.id}
+        emptyText="No guests yet. Add one above."
+      />
     </CollapsibleSection>
   );
 }

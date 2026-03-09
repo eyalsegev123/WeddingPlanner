@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
 import CollapsibleSection from "../../shared/components/CollapsibleSection";
+import DataTable, { ColumnDef, SortDir } from "../../shared/components/DataTable";
+import { badgeClass } from "../../utils/badgeClass";
 import type { CollapseSignal, WeddingMember, WorkspaceRole } from "../../types/wedding";
 
 interface Props {
@@ -26,6 +28,8 @@ export default function CollaboratorsSection({
 }: Props) {
   const [inviteEmail, setInviteEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [sortKey, setSortKey] = useState<string | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
   const isOwner = role === "owner";
 
   async function submitInvite(event: React.FormEvent) {
@@ -36,6 +40,56 @@ export default function CollaboratorsSection({
     setInviteEmail("");
     setSubmitting(false);
   }
+
+  function handleSort(key: string) {
+    if (key === sortKey) setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    else { setSortKey(key); setSortDir("asc"); }
+  }
+
+  const sortedMembers = useMemo(() => {
+    if (!sortKey) return members;
+    return [...members].sort((a, b) => {
+      const av = String((a as unknown as Record<string, unknown>)[sortKey] ?? "");
+      const bv = String((b as unknown as Record<string, unknown>)[sortKey] ?? "");
+      const cmp = av.localeCompare(bv, undefined, { numeric: true, sensitivity: "base" });
+      return sortDir === "asc" ? cmp : -cmp;
+    });
+  }, [members, sortKey, sortDir]);
+
+  const columns: ColumnDef<WeddingMember>[] = [
+    {
+      key: "invited_email",
+      label: "Email",
+      sortable: true,
+      width: "240px",
+      render: (m) => <strong>{m.invited_email}</strong>,
+    },
+    {
+      key: "role",
+      label: "Role",
+      sortable: true,
+      width: "110px",
+      render: (m) => <span className={badgeClass(m.role)}>{m.role}</span>,
+    },
+    {
+      key: "status",
+      label: "Status",
+      sortable: true,
+      width: "120px",
+      render: (m) => <span className={badgeClass(m.status)}>{m.status}</span>,
+    },
+    {
+      key: "_actions",
+      label: "",
+      width: "110px",
+      render: (m) =>
+        isOwner && m.role !== "owner" ? (
+          <button className="btn danger" type="button" onClick={() => onRemove(m.id)}>
+            Remove
+          </button>
+        ) : null,
+    },
+  ];
 
   return (
     <CollapsibleSection title="Collaborators" collapseSignal={collapseSignal}>
@@ -59,35 +113,19 @@ export default function CollaboratorsSection({
         </form>
       )}
 
-      <div className="stack">
-        {loading ? (
-          <p className="muted">Loading collaborators...</p>
-        ) : members.length ? (
-          members.map((member) => (
-            <article className="row" key={member.id}>
-              <div>
-                <strong>{member.invited_email}</strong>
-                <p className="muted">
-                  {member.role} • {member.status}
-                </p>
-              </div>
-              {isOwner && member.role !== "owner" ? (
-                <div className="row-actions">
-                  <button
-                    className="btn danger"
-                    type="button"
-                    onClick={() => onRemove(member.id)}
-                  >
-                    Remove
-                  </button>
-                </div>
-              ) : null}
-            </article>
-          ))
-        ) : (
-          <p className="muted">No collaborators yet.</p>
-        )}
-      </div>
+      {loading ? (
+        <p className="muted">Loading collaborators...</p>
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={sortedMembers}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSort={handleSort}
+          getRowKey={(m) => m.id}
+          emptyText="No collaborators yet."
+        />
+      )}
     </CollapsibleSection>
   );
 }

@@ -650,4 +650,193 @@ textarea {
     width: 100%;
     max-height: 92vh;
   }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.8rem;
+  }
 }
+
+/* ── Data Table ─────────────────────────────────────────────────────── */
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-top: 0.5rem;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.data-table thead tr {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 246, 255, 0.92));
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.data-table th {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.data-table td {
+  padding: 0.45rem 0.75rem;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: rgba(10, 127, 116, 0.04);
+}
+
+.data-table .td-actions {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Sort header states */
+.data-table th.sortable {
+  cursor: pointer;
+}
+
+.data-table th.sortable:hover {
+  color: var(--text);
+  background: rgba(10, 127, 116, 0.06);
+}
+
+.data-table th.sorted {
+  color: var(--accent);
+}
+
+.sort-icon {
+  display: inline-block;
+  margin-left: 0.3rem;
+  opacity: 0.5;
+  font-style: normal;
+}
+
+.data-table th.sorted .sort-icon {
+  opacity: 1;
+}
+
+/* Transparent cell inputs */
+.cell-input {
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.4rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  transition: background 120ms ease, box-shadow 120ms ease;
+}
+
+.cell-input:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.cell-input:focus {
+  outline: none;
+  background: #fff;
+  box-shadow: 0 0 0 2px var(--focus);
+}
+
+.cell-select {
+  width: 100%;
+  border: none;
+  border-radius: 6px;
+  padding: 0.2rem 0.35rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.cell-select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--focus);
+  background: #fff;
+}
+
+.cell-checkbox {
+  display: grid;
+  place-items: center;
+}
+
+.cell-checkbox input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: var(--accent);
+}
+
+/* Empty state row */
+.table-empty td {
+  text-align: center;
+  padding: 2rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Status Badge Pills ──────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+/* Task status */
+.badge-open        { background: #e8f4fd; color: #1a6fa6; }
+.badge-in-progress { background: #fff4e0; color: #b06000; }
+.badge-blocked     { background: #fde8e8; color: #a61a1a; }
+.badge-done        { background: #e5f7f0; color: #0a6644; }
+
+/* Task priority */
+.badge-low    { background: #f0f4ff; color: #4060b0; }
+.badge-medium { background: #fff8e0; color: #9a6a00; }
+.badge-high   { background: #fde8e8; color: #a61a1a; }
+
+/* Guest RSVP */
+.badge-pending { background: #f5f0ff; color: #6040a0; }
+.badge-yes     { background: #e5f7f0; color: #0a6644; }
+.badge-no      { background: #fde8e8; color: #a61a1a; }
+
+/* Vendor status */
+.badge-researching { background: #f0f4ff; color: #4060b0; }
+.badge-shortlisted { background: #fff4e0; color: #b06000; }
+.badge-booked      { background: #e5f7f0; color: #0a6644; }
+
+/* Member role / status */
+.badge-owner  { background: #e8f0fe; color: #3050b0; }
+.badge-editor { background: #f0f0f0; color: #404040; }
+.badge-active { background: #e5f7f0; color: #0a6644; }
+
+/* Budget paid */
+.badge-paid   { background: #e5f7f0; color: #0a6644; }
+.badge-unpaid { background: #f5f5f5; color: #5b6880; }
