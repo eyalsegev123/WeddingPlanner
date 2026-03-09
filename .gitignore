@@ -6,3 +6,4 @@ dist
 .env.*
 !.env.example
 .playwright-mcp
+.claude/settings.local.json
