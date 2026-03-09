@@ -92,7 +92,7 @@ main.tsx
                           ├── vendors/VendorsSection.tsx
                           ├── guests/GuestsSection.tsx
                           ├── budget/BudgetSection.tsx
-                          ├── tables/TablesSection.tsx
+                          ├── tables/ (TablesSection, TableCanvas, GuestSidebar, TableEditor)
                           └── data-export/JsonSection.tsx
 ```
 
@@ -108,18 +108,18 @@ Feature sections are **pure presentational components** — they receive typed p
 | `useWorkspace` | `workspaceId`, `role`, `members`, loading/error | Yes — workspace bootstrap + member CRUD |
 | `useSync` | `syncState`, debounce timer, realtime subscription, conflict queue | Yes — save + subscribe |
 
-`useWeddingData` sets `hasPendingSave = true` whenever data changes. `useSync` watches that flag and triggers the debounced save.
+`useWeddingData` tracks which JSONB domains are dirty in a `dirtyDomains: Set<WeddingDomain>` set. `useSync` watches that set, triggers the debounced save, and passes only the dirty domains to `updateWorkspace` — so unchanged columns are never written.
 
 ---
 
 ### Realtime Sync & Conflict Strategy
 
 ```
-User edits → hasPendingSave=true
+User edits → dirtyDomains.add(domain)
                 ↓
          debounce 280ms
                 ↓
-         updateWorkspace()  ──→  DB write  ──→  updated_at returned
+         updateWorkspace(dirtyDomains)  ──→  DB write (dirty cols only)  ──→  updated_at returned
                                     │
                               postgres_changes event emitted
                                     │
@@ -171,7 +171,7 @@ If a save fails, `useSync` rolls back to the last known server snapshot.
 └──────────────────────────────────────────────────────────────┘
 ```
 
-All wedding content lives in one `weddings` row. Writes are whole-row updates (no partial JSONB patching) — simple and predictable.
+All wedding content lives in one `weddings` row. Writes are column-level — only the JSONB domains that changed in a given edit are sent to the database (dirty tracking via `dirtyDomains: Set<WeddingDomain>`).
 
 ---
 
@@ -241,7 +241,11 @@ src/
 │   ├── tasks/TasksSection.tsx
 │   ├── vendors/VendorsSection.tsx
 │   ├── budget/BudgetSection.tsx
-│   ├── tables/TablesSection.tsx
+│   ├── tables/
+│   │   ├── TablesSection.tsx
+│   │   ├── TableCanvas.tsx
+│   │   ├── GuestSidebar.tsx
+│   │   └── TableEditor.tsx
 │   ├── collaborators/CollaboratorsSection.tsx
 │   └── data-export/JsonSection.tsx
 ├── shared/
@@ -315,6 +319,8 @@ Other scripts:
 ```bash
 npm run build      # Type-check + production build → dist/
 npm run preview    # Preview the production build locally
+npm test           # Run Vitest test suite
+npm run test:coverage  # Run tests with coverage report
 ```
 
 ---

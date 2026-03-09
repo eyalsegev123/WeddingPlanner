@@ -3,7 +3,7 @@
 ## Stack
 - **React 18** + **Vite 5** + **TypeScript** (strict mode)
 - **Supabase** for backend (auth, realtime DB, Postgres JSONB)
-- No test framework configured yet
+- **Vitest** for unit tests (`npm test` / `npm run test:coverage`)
 
 ## Project Structure
 ```
@@ -23,7 +23,7 @@ src/
 │   ├── tasks/              # TasksSection.tsx
 │   ├── vendors/            # VendorsSection.tsx
 │   ├── budget/             # BudgetSection.tsx
-│   ├── tables/             # TablesSection.tsx
+│   ├── tables/             # TablesSection, TableCanvas, GuestSidebar, TableEditor
 │   ├── collaborators/      # CollaboratorsSection.tsx
 │   └── data-export/        # JsonSection.tsx
 ├── shared/components/      # AuthPanel, Header, CollapsibleSection
@@ -41,12 +41,15 @@ npm run dev        # Start Vite dev server
 npm run build      # tsc + vite build → dist/
 npm run typecheck  # tsc --noEmit (type check only)
 npm run preview    # Preview production build
+npm test           # Run Vitest suite
+npm run test:coverage  # Tests with coverage report
 ```
 
 ## Key Notes
 - Env vars required: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` in `.env.local`
 - Data model: one JSONB blob (`meta`, `tasks`, `vendors`, `guests`, `tables`, `budget`) per workspace
 - Realtime: Supabase subscriptions + debounced save (280ms) with conflict queue
+- Write optimization: `dirtyDomains: Set<WeddingDomain>` in `useWeddingData` — only changed JSONB columns are sent on save
 - `window.alert/confirm` removed — `applyJson` returns `{ error: string | null }`, `resetAllData(confirmed: boolean)`
 
 ## Conventions
@@ -56,4 +59,4 @@ npm run preview    # Preview production build
 - Add enum options (selects, options) from `constants/enums.ts` — never hardcode strings inline
 - Keep files focused — split if a file grows beyond ~150 lines
 - Plans go in `plans/<descriptive-name>.md` before executing
-- Update `README.md` after completing new features or significant refactors
+- Update `README.md` after completing new features or significant refactors, and always before pushing changes to remote
