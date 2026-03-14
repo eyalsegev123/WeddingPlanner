@@ -3,7 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import defaultData from "../data/defaultWeddingData.json";
 import { supabase } from "../lib/supabaseClient";
 import { ALL_WEDDING_DOMAINS } from "../types/wedding";
-import type { ServerStatePayload, WeddingData, WeddingDomain, WeddingMember, WorkspaceResult, WorkspaceRole } from "../types/wedding";
+import type { PendingInvite, ServerStatePayload, WeddingData, WeddingDomain, WeddingMember, WorkspaceResult, WorkspaceRole, WorkspaceSummary } from "../types/wedding";
 import { normalizeData } from "../utils/storage";
 
 function requireClient() {
@@ -40,32 +40,8 @@ async function findActiveMembership(userId: string) {
   return data ?? null;
 }
 
-async function activatePendingInvite(user: User): Promise<void> {
-  const client = requireClient();
-  const email = normalizeEmail(user.email);
-  if (!email) return;
 
-  const { data, error } = await client
-    .from("wedding_members")
-    .select("id")
-    .eq("status", "pending")
-    .eq("invited_email", email)
-    .is("user_id", null)
-    .limit(1)
-    .maybeSingle();
-
-  if (error) throw error;
-  if (!data) return;
-
-  const { error: updateError } = await client
-    .from("wedding_members")
-    .update({ status: "active", user_id: user.id })
-    .eq("id", data.id);
-
-  if (updateError) throw updateError;
-}
-
-async function createWorkspaceForOwner(user: User) {
+export async function createWorkspaceForOwner(user: User) {
   const client = requireClient();
   const normalizedEmail = normalizeEmail(user.email);
   const payload = normalizeData(defaultData);
@@ -104,7 +80,6 @@ export async function getOrCreateWorkspace(user: User): Promise<WorkspaceResult>
   const client = requireClient();
   if (!user?.id) throw new Error("User is required.");
 
-  await activatePendingInvite(user);
   const membership = await findActiveMembership(user.id);
 
   if (!membership) {
@@ -268,5 +243,86 @@ export async function inviteMember({
 export async function removeMember(memberId: string): Promise<void> {
   const client = requireClient();
   const { error } = await client.from("wedding_members").delete().eq("id", memberId);
+  if (error) throw error;
+}
+
+export async function listUserWorkspaces(userId: string): Promise<WorkspaceSummary[]> {
+  const client = requireClient();
+  const { data, error } = await client
+    .from("wedding_members")
+    .select("wedding_id, role, weddings(meta)")
+    .eq("user_id", userId)
+    .eq("status", "active");
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const wedding = (row.weddings as unknown) as { meta: Record<string, unknown> } | null;
+    const meta = wedding?.meta ?? {};
+    return {
+      weddingId: String(row.wedding_id),
+      role: row.role as WorkspaceRole,
+      title: String(meta.title ?? "Untitled Wedding"),
+      partnerOne: String(meta.partnerOne ?? ""),
+      partnerTwo: String(meta.partnerTwo ?? ""),
+    };
+  });
+}
+
+export async function listPendingInvites(email: string): Promise<PendingInvite[]> {
+  const client = requireClient();
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) return [];
+
+  const { data, error } = await client
+    .from("wedding_members")
+    .select("id, wedding_id, role, weddings(meta)")
+    .eq("status", "pending")
+    .eq("invited_email", normalizedEmail)
+    .is("user_id", null);
+
+  if (error) throw error;
+
+  return (data ?? []).map((row) => {
+    const wedding = (row.weddings as unknown) as { meta: Record<string, unknown> } | null;
+    const meta = wedding?.meta ?? {};
+    return {
+      memberId: String(row.id),
+      weddingId: String(row.wedding_id),
+      role: row.role as WorkspaceRole,
+      title: String(meta.title ?? "Untitled Wedding"),
+      partnerOne: String(meta.partnerOne ?? ""),
+      partnerTwo: String(meta.partnerTwo ?? ""),
+    };
+  });
+}
+
+export async function acceptInvite(memberId: string, userId: string): Promise<void> {
+  const client = requireClient();
+  const { error } = await client
+    .from("wedding_members")
+    .update({ status: "active", user_id: userId })
+    .eq("id", memberId);
+
+  if (error) throw error;
+}
+
+export async function declineInvite(memberId: string): Promise<void> {
+  const client = requireClient();
+  const { error } = await client
+    .from("wedding_members")
+    .update({ status: "declined" })
+    .eq("id", memberId);
+
+  if (error) throw error;
+}
+
+export async function deleteWorkspace(weddingId: string): Promise<void> {
+  const client = requireClient();
+  const { error } = await client
+    .from("weddings")
+    .delete()
+    .eq("id", weddingId);
+
   if (error) throw error;
 }

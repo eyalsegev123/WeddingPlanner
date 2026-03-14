@@ -13,7 +13,7 @@ export type RsvpStatus = (typeof RSVP_STATUSES)[number];
 export type VendorStatus = (typeof VENDOR_STATUSES)[number];
 export type TableShape = (typeof TABLE_SHAPES)[number];
 export type WorkspaceRole = (typeof WORKSPACE_ROLES)[number];
-export type MemberStatus = "pending" | "active";
+export type MemberStatus = "pending" | "active" | "declined";
 export type SyncState = "idle" | "dirty" | "saving" | "saved" | "error";
 
 export interface WeddingMeta {
@@ -132,6 +132,23 @@ export interface WorkspaceResult {
   role: WorkspaceRole;
   updatedAt: string;
   data: WeddingData;
+}
+
+export interface WorkspaceSummary {
+  weddingId: string;
+  role: WorkspaceRole;
+  title: string;
+  partnerOne: string;
+  partnerTwo: string;
+}
+
+export interface PendingInvite {
+  memberId: string;
+  weddingId: string;
+  role: WorkspaceRole;
+  title: string;
+  partnerOne: string;
+  partnerTwo: string;
 }
 
 export interface ServerStatePayload {

@@ -166,3 +166,35 @@ using (
   public.is_wedding_owner(wedding_members.wedding_id)
   and wedding_members.role <> 'owner'
 );
+
+-- Migration: pending invitations UI + workspace deletion
+
+-- 1. Allow 'declined' as a valid status for wedding_members
+alter table public.wedding_members
+  drop constraint if exists wedding_members_status_check;
+
+alter table public.wedding_members
+  add constraint wedding_members_status_check
+  check (status in ('pending', 'active', 'declined'));
+
+-- 2. RLS: allow invitee to decline their own pending invite
+drop policy if exists wedding_members_update_decline_own_pending on public.wedding_members;
+create policy wedding_members_update_decline_own_pending on public.wedding_members
+for update
+using (
+  lower(invited_email) = lower(coalesce(auth.jwt()->>'email', ''))
+  and status = 'pending'
+  and user_id is null
+)
+with check (
+  lower(invited_email) = lower(coalesce(auth.jwt()->>'email', ''))
+  and status = 'declined'
+);
+
+-- 3. RLS: allow workspace owner to delete their workspace
+drop policy if exists weddings_delete_owner on public.weddings;
+create policy weddings_delete_owner on public.weddings
+for delete
+using (
+  public.is_wedding_owner(weddings.id)
+);

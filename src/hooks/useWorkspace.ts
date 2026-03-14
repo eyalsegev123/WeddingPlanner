@@ -3,7 +3,6 @@ import type { Dispatch, SetStateAction } from "react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  getOrCreateWorkspace,
   inviteMember,
   listMembers,
   refreshWedding,
@@ -18,8 +17,6 @@ interface UseWorkspaceOptions {
 }
 
 export interface WorkspaceHook {
-  workspaceId: string;
-  workspaceRole: WorkspaceRole;
   workspaceLoading: boolean;
   membersLoading: boolean;
   members: WeddingMember[];
@@ -32,12 +29,12 @@ export interface WorkspaceHook {
 
 export function useWorkspace(
   user: User | null,
+  workspaceId: string | null,
+  workspaceRole: WorkspaceRole,
   options: UseWorkspaceOptions,
 ): WorkspaceHook {
   const { onServerState, setStatusMessage, getWeddingTitle } = options;
 
-  const [workspaceId, setWorkspaceId] = useState("");
-  const [workspaceRole, setWorkspaceRole] = useState<WorkspaceRole>("editor");
   const [workspaceLoading, setWorkspaceLoading] = useState(false);
   const [membersLoading, setMembersLoading] = useState(false);
   const [members, setMembers] = useState<WeddingMember[]>([]);
@@ -56,35 +53,24 @@ export function useWorkspace(
     }
   }, [setStatusMessage]);
 
-  const loadWorkspace = useCallback(async () => {
-    if (!user) return;
+  // Reset state on logout
+  useEffect(() => {
+    if (!user) { setMembers([]); setAppError(""); }
+  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Load workspace data when a workspace is selected
+  useEffect(() => {
+    if (!workspaceId) { setWorkspaceLoading(false); return; }
     setWorkspaceLoading(true);
     setAppError("");
-    try {
-      const workspace = await getOrCreateWorkspace(user);
-      setWorkspaceId(workspace.weddingId);
-      setWorkspaceRole(workspace.role ?? "editor");
-      onServerState(workspace.data, workspace.updatedAt ?? "");
-      setStatusMessage("Workspace ready.");
-    } catch (error) {
-      const msg = error instanceof Error ? error.message : "Failed to load workspace.";
-      setAppError(msg);
-    } finally {
-      setWorkspaceLoading(false);
-    }
-  }, [user, onServerState, setStatusMessage]);
-
-  // Reset state on logout, load workspace on login
-  useEffect(() => {
-    if (!user) {
-      setWorkspaceId("");
-      setWorkspaceRole("editor");
-      setMembers([]);
-      setAppError("");
-      return;
-    }
-    loadWorkspace();
-  }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    refreshWedding(workspaceId)
+      .then((result) => {
+        onServerState(result.data, result.updatedAt ?? "");
+        setStatusMessage("Workspace ready.");
+      })
+      .catch((err) => setAppError(err instanceof Error ? err.message : "Failed to load workspace."))
+      .finally(() => setWorkspaceLoading(false));
+  }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load members when workspaceId is available
   useEffect(() => {
@@ -134,13 +120,11 @@ export function useWorkspace(
   }
 
   return {
-    workspaceId,
-    workspaceRole,
     workspaceLoading,
     membersLoading,
     members,
     appError,
-    retryLoad: loadWorkspace,
+    retryLoad: refreshFromServer,
     refreshFromServer,
     handleInvite,
     handleRemove,
