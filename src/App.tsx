@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from "react";
 
 import { useAuth } from "./context/AuthContext";
+import AIChatPanel from "./features/ai-chat/AIChatPanel";
 import CollaboratorsSection from "./features/collaborators/CollaboratorsSection";
 import JsonSection from "./features/data-export/JsonSection";
 import BudgetSection from "./features/budget/BudgetSection";
@@ -35,6 +36,7 @@ export default function App() {
   const [statusMessage, setStatusMessage] = useState("");
   const [collapseSignal, setCollapseSignal] = useState<CollapseSignal>({ mode: null, seq: 0 });
 
+  const [chatOpen, setChatOpen] = useState(false);
   const [view, setView] = useState<AppView>("picker");
   const [pickerLoading, setPickerLoading] = useState(false);
   const [pickerError, setPickerError] = useState("");
@@ -241,6 +243,9 @@ export default function App() {
         <button className="btn secondary" type="button" onClick={signOut}>
           Sign Out
         </button>
+        <button className="btn" type="button" onClick={() => setChatOpen((o) => !o)}>
+          {chatOpen ? "Close Chat" : "AI Assistant"}
+        </button>
       </div>
 
       <p className="muted sync-label">
@@ -305,6 +310,12 @@ export default function App() {
           collapseSignal={collapseSignal}
         />
       </div>
+      {chatOpen && (
+        <AIChatPanel
+          weddingData={data}
+          onClose={() => setChatOpen(false)}
+        />
+      )}
     </main>
   );
 }

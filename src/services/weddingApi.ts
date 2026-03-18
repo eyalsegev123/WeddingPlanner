@@ -3,7 +3,7 @@ import type { User } from "@supabase/supabase-js";
 import defaultData from "../data/defaultWeddingData.json";
 import { supabase } from "../lib/supabaseClient";
 import { ALL_WEDDING_DOMAINS } from "../types/wedding";
-import type { PendingInvite, ServerStatePayload, WeddingData, WeddingDomain, WeddingMember, WorkspaceResult, WorkspaceRole, WorkspaceSummary } from "../types/wedding";
+import type { ChatMessage, PendingInvite, ServerStatePayload, WeddingData, WeddingDomain, WeddingMember, WorkspaceResult, WorkspaceRole, WorkspaceSummary } from "../types/wedding";
 import { normalizeData } from "../utils/storage";
 
 function requireClient() {
@@ -325,4 +325,17 @@ export async function deleteWorkspace(weddingId: string): Promise<void> {
     .eq("id", weddingId);
 
   if (error) throw error;
+}
+
+export async function sendChatMessage(
+  messages: ChatMessage[],
+  weddingData: WeddingData,
+): Promise<string> {
+  const client = requireClient();
+  const { data, error } = await client.functions.invoke("ai-chat", {
+    body: { messages, weddingData },
+  });
+  if (error) throw error;
+  if (data?.error) throw new Error(data.error);
+  return String(data?.reply ?? "");
 }
