@@ -2,7 +2,6 @@ import {
   RSVP_STATUSES,
   TASK_PRIORITIES,
   TASK_STATUSES,
-  VENDOR_STATUSES,
 } from "../constants/enums";
 import defaultData from "../data/defaultWeddingData.json";
 import type {
@@ -13,7 +12,6 @@ import type {
   TaskPriority,
   TaskStatus,
   Vendor,
-  VendorStatus,
   WeddingData,
   WeddingMeta,
   WeddingTable,
@@ -22,8 +20,6 @@ import type {
 const TASK_STATUS_SET = new Set<string>(TASK_STATUSES);
 const TASK_PRIORITY_SET = new Set<string>(TASK_PRIORITIES);
 const RSVP_STATUS_SET = new Set<string>(RSVP_STATUSES);
-const VENDOR_STATUS_SET = new Set<string>(VENDOR_STATUSES);
-
 function asArray<T>(value: unknown): T[] {
   return Array.isArray(value) ? (value as T[]) : [];
 }
@@ -173,16 +169,19 @@ export function normalizeData(raw: unknown): WeddingData {
     asArray<Record<string, unknown>>(source.vendors).map((v) => ({
       id: String(v?.id ?? ""),
       name: String(v?.name ?? ""),
-      category: String(v?.category ?? "Other"),
       contactName: String(v?.contactName ?? ""),
       phone: String(v?.phone ?? ""),
       email: String(v?.email ?? ""),
-      quote: asNumber(v?.quote, 0, { min: 0 }),
-      status: VENDOR_STATUS_SET.has(String(v?.status ?? ""))
-        ? (String(v.status) as VendorStatus)
-        : "Researching",
-      lastContact: String(v?.lastContact ?? ""),
-      nextStep: String(v?.nextStep ?? ""),
+      website: String(v?.website ?? ""),
+      city: String(v?.city ?? ""),
+      costPerPerson: asNumber(v?.costPerPerson, 0, { min: 0 }),
+      design: asNumber(v?.design, 0, { min: 0 }),
+      hours: asNumber(v?.hours, 0, { min: 0 }),
+      foodDrinkMin: asNumber(v?.foodDrinkMin, 0, { min: 0 }),
+      alcohol: String(v?.alcohol ?? ""),
+      parking: String(v?.parking ?? ""),
+      totalVenuePrice: asNumber(v?.totalVenuePrice, 0, { min: 0 }),
+      totalPrice: asNumber(v?.totalPrice, 0, { min: 0 }),
       notes: String(v?.notes ?? ""),
     })),
     "vendor",

@@ -87,8 +87,7 @@ export function useWeddingData(): WeddingDataHook {
     const budgetPaid = data.budget
       .filter((item) => item.paid)
       .reduce((sum, item) => sum + item.amount, 0);
-    const shortlistedVendors = data.vendors.filter((v) => v.status === "Shortlisted").length;
-    const bookedVendors = data.vendors.filter((v) => v.status === "Booked").length;
+    const totalVenues = data.vendors.length;
     const activeDate = data.meta.weddingDate
       ? new Date(`${data.meta.weddingDate}T00:00:00`)
       : null;
@@ -109,8 +108,7 @@ export function useWeddingData(): WeddingDataHook {
       budgetPlanned,
       budgetLeft: budgetPlanned - budgetPaid,
       currency: data.meta.currency,
-      shortlistedVendors,
-      bookedVendors,
+      totalVenues,
       daysToWedding,
     };
   }, [data]);

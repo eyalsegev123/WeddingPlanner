@@ -3,14 +3,12 @@ import type {
   TABLE_SHAPES,
   TASK_PRIORITIES,
   TASK_STATUSES,
-  VENDOR_STATUSES,
   WORKSPACE_ROLES,
 } from "../constants/enums";
 
 export type TaskStatus = (typeof TASK_STATUSES)[number];
 export type TaskPriority = (typeof TASK_PRIORITIES)[number];
 export type RsvpStatus = (typeof RSVP_STATUSES)[number];
-export type VendorStatus = (typeof VENDOR_STATUSES)[number];
 export type TableShape = (typeof TABLE_SHAPES)[number];
 export type WorkspaceRole = (typeof WORKSPACE_ROLES)[number];
 export type MemberStatus = "pending" | "active" | "declined";
@@ -71,14 +69,19 @@ export interface BudgetItem {
 export interface Vendor {
   id: string;
   name: string;
-  category: string;
   contactName: string;
   phone: string;
   email: string;
-  quote: number;
-  status: VendorStatus;
-  lastContact: string;
-  nextStep: string;
+  website: string;
+  city: string;
+  costPerPerson: number;
+  design: number;
+  hours: number;
+  foodDrinkMin: number;
+  alcohol: string;
+  parking: string;
+  totalVenuePrice: number;
+  totalPrice: number;
   notes: string;
 }
 
@@ -117,8 +120,7 @@ export interface WeddingStats {
   budgetPlanned: number;
   budgetLeft: number;
   currency: string;
-  shortlistedVendors: number;
-  bookedVendors: number;
+  totalVenues: number;
   daysToWedding: number | null;
 }
 
@@ -149,6 +151,11 @@ export interface PendingInvite {
   title: string;
   partnerOne: string;
   partnerTwo: string;
+}
+
+export interface ChatMessage {
+  role: "user" | "assistant";
+  content: string;
 }
 
 export interface ServerStatePayload {

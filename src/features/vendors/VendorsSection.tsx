@@ -2,8 +2,7 @@ import React, { useMemo, useState } from "react";
 
 import CollapsibleSection from "../../shared/components/CollapsibleSection";
 import DataTable, { ColumnDef, SortDir } from "../../shared/components/DataTable";
-import { VENDOR_CATEGORIES, VENDOR_STATUSES } from "../../constants/enums";
-import type { CollapseSignal, Vendor, VendorStatus } from "../../types/wedding";
+import type { CollapseSignal, Vendor } from "../../types/wedding";
 
 interface Props {
   vendors: Vendor[];
@@ -14,22 +13,21 @@ interface Props {
   collapseSignal?: CollapseSignal;
 }
 
-const STATUS_BG: Record<VendorStatus, string> = {
-  Researching: "#f0f4ff",
-  Shortlisted: "#fff4e0",
-  Booked: "#e5f7f0",
-};
-
 const initialVendor: Omit<Vendor, "id"> = {
   name: "",
-  category: "Venue",
   contactName: "",
   phone: "",
   email: "",
-  quote: 0,
-  status: "Researching",
-  lastContact: "",
-  nextStep: "",
+  website: "",
+  city: "",
+  costPerPerson: 0,
+  design: 0,
+  hours: 0,
+  foodDrinkMin: 0,
+  alcohol: "",
+  parking: "",
+  totalVenuePrice: 0,
+  totalPrice: 0,
   notes: "",
 };
 
@@ -41,7 +39,11 @@ export default function VendorsSection({
   onDeleteVendor,
   collapseSignal,
 }: Props) {
-  const [form, setForm] = useState({ ...initialVendor, quote: "" as string | number });
+  const [form, setForm] = useState<{ name: string; contactName: string; city: string }>({
+    name: "",
+    contactName: "",
+    city: "",
+  });
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
 
@@ -62,71 +64,57 @@ export default function VendorsSection({
 
   function submit(event: React.FormEvent) {
     event.preventDefault();
-    const quote = Number(form.quote);
-    onAddVendor({ ...initialVendor, ...form, quote: Number.isFinite(quote) ? quote : 0 });
-    setForm({ ...initialVendor, quote: "" });
+    onAddVendor({ ...initialVendor, name: form.name, contactName: form.contactName, city: form.city });
+    setForm({ name: "", contactName: "", city: "" });
   }
 
   const p = (id: string, patch: Partial<Vendor>) => onPatchVendor(id, patch);
 
   const columns: ColumnDef<Vendor>[] = [
-    { key: "name", label: "Vendor", sortable: true, width: "150px",
+    { key: "name", label: "Venue", sortable: true, width: "150px",
       render: (v) => <input className="cell-input" value={v.name} onChange={(e) => p(v.id, { name: e.target.value })} /> },
-    { key: "category", label: "Category", sortable: true, width: "120px",
-      render: (v) => (
-        <select className="cell-select" value={v.category} onChange={(e) => p(v.id, { category: e.target.value })}>
-          {VENDOR_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-        </select>
-      ) },
-    { key: "status", label: "Status", sortable: true, width: "120px",
-      render: (v) => (
-        <select className="cell-select" value={v.status}
-          style={{ background: STATUS_BG[v.status], borderRadius: "999px", paddingLeft: "0.6rem" }}
-          onChange={(e) => p(v.id, { status: e.target.value as VendorStatus })}>
-          {VENDOR_STATUSES.map((s) => <option key={s}>{s}</option>)}
-        </select>
-      ) },
-    { key: "contactName", label: "Contact", sortable: true, width: "130px",
+    { key: "contactName", label: "Contact", width: "130px",
       render: (v) => <input className="cell-input" placeholder="Contact" value={v.contactName} onChange={(e) => p(v.id, { contactName: e.target.value })} /> },
     { key: "phone", label: "Phone", width: "120px",
       render: (v) => <input className="cell-input" placeholder="Phone" value={v.phone} onChange={(e) => p(v.id, { phone: e.target.value })} /> },
-    { key: "email", label: "Email", width: "160px",
+    { key: "email", label: "Email", width: "150px",
       render: (v) => <input className="cell-input" placeholder="Email" value={v.email} onChange={(e) => p(v.id, { email: e.target.value })} /> },
-    { key: "quote", label: "Quote", sortable: true, width: "110px",
-      render: (v) => <input type="number" min="0" step="0.01" className="cell-input" placeholder="0" value={v.quote} onChange={(e) => p(v.id, { quote: Number(e.target.value) || 0 })} /> },
-    { key: "lastContact", label: "Last Contact", sortable: true, width: "140px",
-      render: (v) => <input type="date" className="cell-input" value={v.lastContact} onChange={(e) => p(v.id, { lastContact: e.target.value })} /> },
-    { key: "nextStep", label: "Next Step", width: "150px",
-      render: (v) => <input className="cell-input" placeholder="Next step" value={v.nextStep} onChange={(e) => p(v.id, { nextStep: e.target.value })} /> },
-    { key: "notes", label: "Notes",
+    { key: "website", label: "Website", width: "150px",
+      render: (v) => <input className="cell-input" placeholder="Website" value={v.website} onChange={(e) => p(v.id, { website: e.target.value })} /> },
+    { key: "city", label: "City", sortable: true, width: "110px",
+      render: (v) => <input className="cell-input" placeholder="City" value={v.city} onChange={(e) => p(v.id, { city: e.target.value })} /> },
+    { key: "costPerPerson", label: "Cost/person", sortable: true, width: "110px",
+      render: (v) => <input type="number" min="0" className="cell-input" placeholder="0" value={v.costPerPerson || ""} onChange={(e) => p(v.id, { costPerPerson: Number(e.target.value) || 0 })} /> },
+    { key: "design", label: "Design", width: "100px",
+      render: (v) => <input type="number" min="0" className="cell-input" placeholder="0" value={v.design || ""} onChange={(e) => p(v.id, { design: Number(e.target.value) || 0 })} /> },
+    { key: "hours", label: "# of hrs", width: "90px",
+      render: (v) => <input type="number" min="0" className="cell-input" placeholder="0" value={v.hours || ""} onChange={(e) => p(v.id, { hours: Number(e.target.value) || 0 })} /> },
+    { key: "foodDrinkMin", label: "Food/drink min.", width: "120px",
+      render: (v) => <input type="number" min="0" className="cell-input" placeholder="0" value={v.foodDrinkMin || ""} onChange={(e) => p(v.id, { foodDrinkMin: Number(e.target.value) || 0 })} /> },
+    { key: "alcohol", label: "Alcohol", width: "120px",
+      render: (v) => <input className="cell-input" placeholder="Alcohol" value={v.alcohol} onChange={(e) => p(v.id, { alcohol: e.target.value })} /> },
+    { key: "parking", label: "Parking", width: "120px",
+      render: (v) => <input className="cell-input" placeholder="Parking" value={v.parking} onChange={(e) => p(v.id, { parking: e.target.value })} /> },
+    { key: "totalVenuePrice", label: "Est. Venue Price", sortable: true, width: "130px",
+      render: (v) => <input type="number" min="0" className="cell-input" placeholder="0" value={v.totalVenuePrice || ""} onChange={(e) => p(v.id, { totalVenuePrice: Number(e.target.value) || 0 })} /> },
+    { key: "totalPrice", label: "Est. Total Price", sortable: true, width: "130px",
+      render: (v) => <input type="number" min="0" className="cell-input" placeholder="0" value={v.totalPrice || ""} onChange={(e) => p(v.id, { totalPrice: Number(e.target.value) || 0 })} /> },
+    { key: "notes", label: "Notes", width: "150px",
       render: (v) => <input className="cell-input" placeholder="Notes" value={v.notes} onChange={(e) => p(v.id, { notes: e.target.value })} /> },
     { key: "_actions", label: "", width: "90px",
       render: (v) => <button className="btn danger" type="button" onClick={() => onDeleteVendor(v.id)}>Delete</button> },
   ];
 
   return (
-    <CollapsibleSection title="Vendors & Contacts" collapseSignal={collapseSignal}>
+    <CollapsibleSection title="Venues" collapseSignal={collapseSignal}>
       <form className="form-grid" onSubmit={submit}>
-        <input placeholder="Vendor name" value={form.name}
+        <input placeholder="Venue name" value={form.name}
           onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))} />
-        <select value={form.category} onChange={(e) => setForm((prev) => ({ ...prev, category: e.target.value }))}>
-          {VENDOR_CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-        </select>
         <input placeholder="Contact person" value={form.contactName}
           onChange={(e) => setForm((prev) => ({ ...prev, contactName: e.target.value }))} />
-        <input placeholder="Phone" value={form.phone}
-          onChange={(e) => setForm((prev) => ({ ...prev, phone: e.target.value }))} />
-        <input placeholder="Email" value={form.email}
-          onChange={(e) => setForm((prev) => ({ ...prev, email: e.target.value }))} />
-        <input type="number" min="0" step="0.01" placeholder="Quote" value={form.quote}
-          onChange={(e) => setForm((prev) => ({ ...prev, quote: e.target.value }))} />
-        <input type="date" value={form.lastContact}
-          onChange={(e) => setForm((prev) => ({ ...prev, lastContact: e.target.value }))} />
-        <input placeholder="Next step" value={form.nextStep}
-          onChange={(e) => setForm((prev) => ({ ...prev, nextStep: e.target.value }))} />
-        <input placeholder="Notes" value={form.notes}
-          onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} />
-        <button className="btn" type="submit">Add Vendor</button>
+        <input placeholder="City" value={form.city}
+          onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))} />
+        <button className="btn" type="submit">Add Venue</button>
       </form>
 
       <DataTable
@@ -136,7 +124,7 @@ export default function VendorsSection({
         sortDir={sortDir}
         onSort={handleSort}
         getRowKey={(v) => v.id}
-        emptyText="No vendors yet. Add one above."
+        emptyText="No venues yet. Add one above."
       />
     </CollapsibleSection>
   );

@@ -62,12 +62,8 @@ export default function Header({ meta, onMetaChange, stats }: Props) {
           <strong>{stats.rsvpCompletion}%</strong>
         </article>
         <article>
-          <p className="muted">Vendors Booked</p>
-          <strong>{stats.bookedVendors}</strong>
-        </article>
-        <article>
-          <p className="muted">Vendors Shortlisted</p>
-          <strong>{stats.shortlistedVendors}</strong>
+          <p className="muted">Venues</p>
+          <strong>{stats.totalVenues}</strong>
         </article>
         <article>
           <p className="muted">Tasks Open</p>
