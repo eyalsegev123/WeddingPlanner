@@ -7,3 +7,5 @@ dist
 !.env.example
 .playwright-mcp
 .claude/settings.local.json
+.vscode/
+wedding-data.json
