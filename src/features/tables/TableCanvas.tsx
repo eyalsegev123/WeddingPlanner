@@ -118,6 +118,7 @@ export default function TableCanvas({
                 e.currentTarget.classList.remove("drag-over");
                 const guestId = e.dataTransfer.getData("guestId");
                 if (!guestId) return;
+                if (table.guestIds.length >= table.capacity) return;
                 onPatchTable(table.id, { guestIds: [...table.guestIds, guestId] });
               }}
             >

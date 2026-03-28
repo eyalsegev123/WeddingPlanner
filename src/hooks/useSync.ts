@@ -113,6 +113,7 @@ export function useSync(
         lastUpdatedAtRef.current = result.updatedAt ?? "";
         onSaveClear();
         setSyncState("saved");
+        window.setTimeout(() => setSyncState("idle"), 2000);
       } catch (error) {
         setSyncState("error");
         const msg = error instanceof Error ? error.message : "Save failed. Restored latest server copy.";

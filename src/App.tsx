@@ -17,7 +17,7 @@ import { useWorkspace } from "./hooks/useWorkspace";
 import { acceptInvite, createWorkspaceForOwner, declineInvite, deleteWorkspace, listPendingInvites, listUserWorkspaces } from "./services/weddingApi";
 import AuthPanel from "./shared/components/AuthPanel";
 import Header from "./shared/components/Header";
-import { downloadJson } from "./utils/storage";
+import { downloadJson, getDefaultData } from "./utils/storage";
 import type { CollapseSignal, PendingInvite, SyncState, WorkspaceRole, WorkspaceSummary } from "./types/wedding";
 
 function getSyncLabel(syncState: SyncState): string {
@@ -100,6 +100,7 @@ export default function App() {
   }, [user?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleSelectWorkspace(ws: WorkspaceSummary) {
+    weddingData.applyServerState(getDefaultData());
     setSelectedWorkspaceId(ws.weddingId);
     setSelectedWorkspaceRole(ws.role);
     setView("workspace");
@@ -123,6 +124,7 @@ export default function App() {
   }
 
   function handleBackToPicker() {
+    weddingData.applyServerState(getDefaultData());
     setView("picker");
     setSelectedWorkspaceId(null);
     loadPickerWorkspaces();

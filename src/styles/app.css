@@ -1080,7 +1080,7 @@ textarea { resize: vertical; }
 
 .more-sheet-item:last-child { border-bottom: none; }
 
-.more-sheet-item:hover, .more-sheet-item:active {
+.more-sheet-item:hover {
   color: var(--accent);
   padding-left: 0.65rem;
 }
