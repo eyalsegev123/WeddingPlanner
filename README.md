@@ -2,7 +2,7 @@
 
 A real-time collaborative wedding planning dashboard. Couples and their planners can manage every aspect of the wedding — guests, tasks, vendors, budget, and seating — with live updates across all collaborators.
 
-Built with **React 18 + TypeScript + Vite + Supabase**.
+Built with **React 18 + TypeScript + Vite + Supabase**. Full mobile support with a bottom tab bar, plus an AI wedding assistant powered by Claude.
 
 ---
 
@@ -13,13 +13,15 @@ Built with **React 18 + TypeScript + Vite + Supabase**.
 | **Wedding Profile** | Partners' names, side labels, date, venue, currency, planner name |
 | **Collaborators** | Invite co-planners by email as editors; owner can remove members |
 | **Tasks** | To-dos with status (Open / In Progress / Blocked / Done), priority, due date, owner |
-| **Vendors** | Pipeline from Researching → Shortlisted → Booked; tracks quote, contact, next step |
+| **Venues** | Compare shortlisted venues — cost per person, design fee, hours, food/drink minimum, alcohol policy, estimated totals |
 | **Guests** | RSVP tracking (Pending / Yes / No), family side assignment, phone, email, notes |
 | **Budget** | Planned vs. paid vs. remaining; category grouping; currency from profile |
-| **Tables** | Top-view canvas; assign guests to round or rectangular tables by capacity |
+| **Tables** | Top-view drag canvas; assign guests to round or rectangular tables by capacity |
+| **AI Assistant** | Claude-powered chat that answers questions about your wedding data — guests, budget, venues, tasks |
 | **JSON Editor** | Apply raw JSON, export full dataset, or reset — power-user escape hatch |
 | **Realtime sync** | Every collaborator sees changes live via Supabase Realtime |
 | **Collapse controls** | Per-section open/close + global Open All / Collapse All |
+| **Mobile support** | Full mobile parity — bottom tab bar navigation, floating AI chat button, read-only seating view |
 
 ---
 
@@ -28,8 +30,10 @@ Built with **React 18 + TypeScript + Vite + Supabase**.
 | Layer | Technology |
 |---|---|
 | Frontend | React 18, TypeScript (strict), Vite 5 |
-| Backend | Supabase — Postgres, Auth, Realtime (no custom server) |
+| Styling | DM Sans (body) + Cormorant Garamond (headings), warm organic design system |
+| Backend | Supabase — Postgres, Auth, Realtime, Edge Functions |
 | Auth | Supabase email/password |
+| AI | Claude (claude-haiku) via Supabase Edge Function + Anthropic API |
 | Persistence | JSONB columns per domain in a single `weddings` row |
 | Realtime | Supabase `postgres_changes` subscription on `weddings` |
 | Deployment | Vercel (static Vite build) |
@@ -235,18 +239,21 @@ src/
 ├── hooks/
 │   ├── useWorkspace.ts
 │   ├── useSync.ts
-│   └── useWeddingData.ts
+│   ├── useWeddingData.ts
+│   └── useIsMobile.ts          # Responsive hook — true when viewport ≤ 768px
 ├── features/
+│   ├── ai-chat/AIChatPanel.tsx
 │   ├── guests/GuestsSection.tsx
 │   ├── tasks/TasksSection.tsx
 │   ├── vendors/VendorsSection.tsx
 │   ├── budget/BudgetSection.tsx
 │   ├── tables/
-│   │   ├── TablesSection.tsx
+│   │   ├── TablesSection.tsx   # Desktop: drag canvas; Mobile: read-only list
 │   │   ├── TableCanvas.tsx
 │   │   ├── GuestSidebar.tsx
 │   │   └── TableEditor.tsx
 │   ├── collaborators/CollaboratorsSection.tsx
+│   ├── workspaces/WorkspacePickerPage.tsx
 │   └── data-export/JsonSection.tsx
 ├── shared/
 │   └── components/
@@ -276,6 +283,35 @@ supabase/
    ```sql
    NOTIFY pgrst, 'reload schema';
    ```
+
+---
+
+## Mobile Layout
+
+On screens ≤ 768px the app switches to a mobile-first layout:
+
+- **Bottom tab bar** — 5 tabs: Home · Guests · Tasks · Budget · More
+- **More sheet** — slide-up sheet for Venues, Seating, Collaborators, Export, Refresh, Back to Workspaces, Sign Out
+- **AI chat** — floating terracotta button (FAB) in the bottom-right, opens full-screen chat
+- **Seating canvas** — replaced with a read-only guest-per-table list on mobile (edit on desktop)
+- **Safe area support** — tab bar accounts for iPhone home indicator via `env(safe-area-inset-bottom)`
+
+---
+
+## AI Assistant
+
+The AI Assistant is powered by Claude (claude-haiku) via a Supabase Edge Function. It receives your full wedding data as context and can answer questions about guests, budget, venues, tasks, and more.
+
+### Setup
+
+1. Deploy the Edge Function: `supabase functions deploy ai-chat --no-verify-jwt`
+2. Set the Anthropic API key as a secret:
+   ```bash
+   supabase secrets set ANTHROPIC_API_KEY=sk-ant-your-key
+   ```
+3. Get an API key at [console.anthropic.com](https://console.anthropic.com). A paid account with API credits is required (the free evaluation plan does not include API access).
+
+> **Note:** The function is deployed with `--no-verify-jwt` because the newer Supabase publishable key format (`sb_publishable_...`) is not a JWT. Your Supabase RLS policies still protect the data.
 
 ---
 

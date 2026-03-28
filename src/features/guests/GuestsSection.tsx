@@ -23,6 +23,7 @@ const RSVP_BG: Record<RsvpStatus, string> = {
 const initialGuest: Omit<Guest, "id"> = {
   name: "",
   side: "",
+  relationship: "",
   phone: "",
   email: "",
   rsvp: "Pending",
@@ -76,6 +77,20 @@ export default function GuestsSection({
           className="cell-input"
           value={g.name}
           onChange={(e) => onPatchGuest(g.id, { name: e.target.value })}
+        />
+      ),
+    },
+    {
+      key: "relationship",
+      label: "Relationship",
+      sortable: true,
+      width: "160px",
+      render: (g) => (
+        <input
+          className="cell-input"
+          placeholder="e.g. Eyal's friends"
+          value={g.relationship}
+          onChange={(e) => onPatchGuest(g.id, { relationship: e.target.value })}
         />
       ),
     },
@@ -170,6 +185,11 @@ export default function GuestsSection({
           placeholder="Guest name"
           value={form.name}
           onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
+        />
+        <input
+          placeholder="Relationship (e.g. Eyal's friends)"
+          value={form.relationship}
+          onChange={(e) => setForm((prev) => ({ ...prev, relationship: e.target.value }))}
         />
         <select
           value={form.side}

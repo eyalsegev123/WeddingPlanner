@@ -17,22 +17,32 @@ src/
 ├── hooks/
 │   ├── useWeddingData.ts   # All data mutations + stats
 │   ├── useWorkspace.ts     # Workspace load, members, invite/remove
-│   └── useSync.ts          # Debounced save + realtime subscription
+│   ├── useSync.ts          # Debounced save + realtime subscription
+│   └── useIsMobile.ts      # window.innerWidth <= 768 + resize listener
 ├── features/
+│   ├── ai-chat/            # AIChatPanel.tsx (calls ai-chat Edge Function)
 │   ├── guests/             # GuestsSection.tsx
 │   ├── tasks/              # TasksSection.tsx
-│   ├── vendors/            # VendorsSection.tsx
+│   ├── vendors/            # VendorsSection.tsx (venue comparison table)
 │   ├── budget/             # BudgetSection.tsx
-│   ├── tables/             # TablesSection, TableCanvas, GuestSidebar, TableEditor
+│   ├── tables/             # TablesSection (desktop canvas / mobile read-only list), TableCanvas, GuestSidebar, TableEditor
 │   ├── collaborators/      # CollaboratorsSection.tsx
+│   ├── workspaces/         # WorkspacePickerPage.tsx
 │   └── data-export/        # JsonSection.tsx
 ├── shared/components/      # AuthPanel, Header, CollapsibleSection
-├── App.tsx                 # Lean composition (~120 lines)
+├── styles/
+│   └── app.css             # Full design system — warm organic palette, mobile tab bar, FAB, bottom sheet
+├── App.tsx                 # Composition layer; handles mobile (tab bar) vs desktop layout
 └── main.tsx
 public/         # Static assets
-supabase/       # schema.sql
+supabase/
+├── schema.sql
+└── functions/
+    ├── ai-chat/            # Claude AI assistant (claude-haiku, verify_jwt: false)
+    └── send-invite-email/  # Invite emails via Resend (verify_jwt: false)
 dist/           # Build output (gitignored)
 plans/          # Implementation plan .md files
+docs/superpowers/specs/  # Approved design specs
 ```
 
 ## Scripts
@@ -51,6 +61,10 @@ npm run test:coverage  # Tests with coverage report
 - Realtime: Supabase subscriptions + debounced save (280ms) with conflict queue
 - Write optimization: `dirtyDomains: Set<WeddingDomain>` in `useWeddingData` — only changed JSONB columns are sent on save
 - `window.alert/confirm` removed — `applyJson` returns `{ error: string | null }`, `resetAllData(confirmed: boolean)`
+- Edge Functions deployed with `verify_jwt: false` — new Supabase publishable key (`sb_publishable_...`) is not a JWT
+- `ANTHROPIC_API_KEY` must be set as a Supabase secret for the AI assistant to work
+- Mobile layout: `useIsMobile` (≤ 768px) in `App.tsx` switches to bottom tab bar + More sheet; `TablesSection` renders read-only list on mobile
+- Design system: warm organic palette (terracotta `#b85c3a`, sage `#6b8f6e`, parchment `#faf6f0`); fonts: DM Sans body + Cormorant Garamond headings (loaded from Google Fonts in `index.html`)
 
 ## Conventions
 - All source files are `.ts` / `.tsx` — no `.js` / `.jsx`

@@ -30,6 +30,7 @@ export interface Guest {
   id: string;
   name: string;
   side: string;
+  relationship: string;
   phone: string;
   email: string;
   rsvp: RsvpStatus;

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import CollapsibleSection from "../../shared/components/CollapsibleSection";
 import { TABLE_SHAPES } from "../../constants/enums";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import type { CollapseSignal, Guest, TableShape, WeddingTable } from "../../types/wedding";
 import GuestSidebar from "./GuestSidebar";
 import TableCanvas from "./TableCanvas";
@@ -34,6 +35,8 @@ export default function TablesSection({
     [guests],
   );
 
+  const isMobile = useIsMobile();
+
   const selectedTable =
     tables.find((t) => t.id === selectedTableId) ?? tables[0] ?? null;
 
@@ -53,6 +56,44 @@ export default function TablesSection({
     setName("");
     setCapacity(8);
     setShape("round");
+  }
+
+  if (isMobile) {
+    return (
+      <CollapsibleSection title="Tables & Seating" collapseSignal={collapseSignal}>
+        <p className="muted" style={{ fontSize: "0.85rem", fontStyle: "italic" }}>
+          Open on desktop to edit seating arrangements.
+        </p>
+        {tables.length === 0 ? (
+          <p className="muted">No tables added yet.</p>
+        ) : (
+          <div className="mobile-tables-list">
+            {tables.map((table) => {
+              const assigned = table.guestIds.map((id) => guestsById.get(id)).filter(Boolean) as Guest[];
+              return (
+                <div key={table.id} className="mobile-table-card">
+                  <div className="mobile-table-card-header">
+                    <strong>{table.name}</strong>
+                    <span className="muted" style={{ fontSize: "0.82rem" }}>
+                      {assigned.length}/{table.capacity} seats
+                    </span>
+                  </div>
+                  {assigned.length > 0 ? (
+                    <ul className="mobile-table-guest-list">
+                      {assigned.map((g) => (
+                        <li key={g.id}>{g.name}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="mobile-table-empty-note">No guests assigned</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CollapsibleSection>
+    );
   }
 
   return (

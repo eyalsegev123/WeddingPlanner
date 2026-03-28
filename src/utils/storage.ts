@@ -95,6 +95,7 @@ export function normalizeData(raw: unknown): WeddingData {
       id: String(g?.id ?? ""),
       name: String(g?.name ?? ""),
       side: String(g?.side ?? ""),
+      relationship: String(g?.relationship ?? ""),
       phone: String(g?.phone ?? ""),
       email: String(g?.email ?? ""),
       rsvp: RSVP_STATUS_SET.has(String(g?.rsvp ?? ""))

@@ -8,7 +8,7 @@ describe("useWeddingData", () => {
     it("appends a guest with a generated id", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "Alice", side: "", phone: "", email: "", rsvp: "Pending", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "Pending", notes: "" });
       });
       expect(result.current.data.guests).toHaveLength(1);
       expect(result.current.data.guests[0].name).toBe("Alice");
@@ -18,7 +18,7 @@ describe("useWeddingData", () => {
     it("sets hasPendingSave to true after adding", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "Bob", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Bob", side: "", relationship: "", phone: "", email: "", rsvp: "Yes", notes: "" });
       });
       expect(result.current.hasPendingSave).toBe(true);
     });
@@ -28,7 +28,7 @@ describe("useWeddingData", () => {
     it("removes the guest from the guests array", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "Alice", side: "", phone: "", email: "", rsvp: "Pending", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "Pending", notes: "" });
       });
       const guestId = result.current.data.guests[0].id;
       act(() => {
@@ -41,7 +41,7 @@ describe("useWeddingData", () => {
       const { result } = renderHook(() => useWeddingData());
       // Add a guest
       act(() => {
-        result.current.addGuest({ name: "Alice", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "Yes", notes: "" });
       });
       const guestId = result.current.data.guests[0].id;
       // Add a table and assign the guest
@@ -115,7 +115,7 @@ describe("useWeddingData", () => {
     it("does nothing when confirmed is false", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "Alice", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "Pending", notes: "" });
       });
       act(() => {
         result.current.resetAllData(false);
@@ -126,7 +126,7 @@ describe("useWeddingData", () => {
     it("resets data to defaults when confirmed is true", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "Alice", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "Yes", notes: "" });
         result.current.addTask({ title: "Book venue", status: "Open", priority: "High", dueDate: "", owner: "", notes: "" });
       });
       expect(result.current.data.guests.length).toBeGreaterThan(0);
@@ -145,8 +145,8 @@ describe("useWeddingData", () => {
     it("calculates rsvpCompletion as percentage of confirmed guests", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "A", side: "", phone: "", email: "", rsvp: "Pending", notes: "" });
-        result.current.addGuest({ name: "B", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "Pending", notes: "" });
+        result.current.addGuest({ name: "Bob", side: "", relationship: "", phone: "", email: "", rsvp: "Yes", notes: "" });
       });
       // 1 out of 2 confirmed = 50%
       expect(result.current.stats.rsvpCompletion).toBe(50);
@@ -155,9 +155,9 @@ describe("useWeddingData", () => {
     it("calculates totalGuests correctly", () => {
       const { result } = renderHook(() => useWeddingData());
       act(() => {
-        result.current.addGuest({ name: "X", side: "", phone: "", email: "", rsvp: "No", notes: "" });
-        result.current.addGuest({ name: "Y", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
-        result.current.addGuest({ name: "Z", side: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Alice", side: "", relationship: "", phone: "", email: "", rsvp: "No", notes: "" });
+        result.current.addGuest({ name: "Bob", side: "", relationship: "", phone: "", email: "", rsvp: "Yes", notes: "" });
+        result.current.addGuest({ name: "Carol", side: "", relationship: "", phone: "", email: "", rsvp: "Yes", notes: "" });
       });
       expect(result.current.stats.totalGuests).toBe(3);
       expect(result.current.stats.confirmedGuests).toBe(2);
