@@ -6,6 +6,7 @@ dist
 .env.*
 !.env.example
 .playwright-mcp
+playwright/
 .claude/settings.local.json
 .vscode/
 wedding-data.json
